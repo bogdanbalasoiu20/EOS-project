@@ -11,6 +11,7 @@ import com.example.demo.tasks.exception.TaskNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,6 +79,15 @@ public class TaskService {
 
     private Task findTask(Long id){
         return tasks.stream().filter(task -> task.getId().equals(id)).findFirst().orElseThrow(() -> new TaskNotFoundException(id));
+    }
+
+    public List<TaskResponse> getOverdueTasks() {
+        log.info("Getting overdue tasks");
+
+        return tasks.stream()
+                .filter(task -> task.getDueDate().isBefore(LocalDateTime.now()) && task.getStatus() != TaskStatus.DONE)
+                .map(TaskMapper::toResponse)
+                .toList();
     }
 
 }

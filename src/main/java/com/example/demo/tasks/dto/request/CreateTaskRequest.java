@@ -17,7 +17,7 @@ public record CreateTaskRequest(
         String content,
 
         @NotNull(message="Due date is required")
-        @Future(message="Due date must be in the future")
+        //@Future(message="Due date must be in the future")
         LocalDateTime dueDate,
 
         @NotNull(message="Status is required")

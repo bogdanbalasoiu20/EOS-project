@@ -48,4 +48,9 @@ public class TaskController {
         return ResponseEntity.ok(taskService.getTasks(status, keyword));
     }
 
+    @GetMapping("/overdue")
+    public ResponseEntity<List<TaskResponse>> getOverdueTasks() {
+        return ResponseEntity.ok(taskService.getOverdueTasks());
+    }
+
 }
