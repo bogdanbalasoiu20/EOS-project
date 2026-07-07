@@ -1,5 +1,6 @@
 package com.example.demo.tasks.controller;
 
+import com.example.demo.tasks.domain.TaskStatus;
 import com.example.demo.tasks.dto.request.CreateTaskRequest;
 import com.example.demo.tasks.dto.request.UpdateTaskRequest;
 import com.example.demo.tasks.dto.response.TaskResponse;
@@ -20,10 +21,6 @@ public class TaskController {
         this.taskService = taskService;
     }
 
-    @GetMapping
-    public ResponseEntity<List<TaskResponse>> getTasks(){
-        return ResponseEntity.ok(taskService.getTasks());
-    }
 
     @PostMapping
     public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody CreateTaskRequest request){
@@ -45,4 +42,10 @@ public class TaskController {
     public ResponseEntity<TaskResponse> getTaskById(@PathVariable Long taskId){
         return ResponseEntity.ok(taskService.getTaskById(taskId));
     }
+
+    @GetMapping
+    public ResponseEntity<List<TaskResponse>> getTasks(@RequestParam(required = false) TaskStatus status, @RequestParam(required = false) String keyword) {
+        return ResponseEntity.ok(taskService.getTasks(status, keyword));
+    }
+
 }

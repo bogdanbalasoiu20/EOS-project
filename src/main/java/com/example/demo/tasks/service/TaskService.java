@@ -1,5 +1,6 @@
 package com.example.demo.tasks.service;
 
+import com.example.demo.tasks.domain.TaskStatus;
 import com.example.demo.tasks.domain.model.Task;
 import com.example.demo.tasks.dto.mapper.TaskMapper;
 import com.example.demo.tasks.dto.request.CreateTaskRequest;
@@ -18,9 +19,12 @@ import java.util.List;
 public class TaskService {
     private final List<Task> tasks = new ArrayList<>();
 
-    public List<TaskResponse> getTasks() {
-        log.info("Getting tasks ");
-        return tasks.stream().map(TaskMapper::toResponse).toList();
+    public List<TaskResponse> getTasks(TaskStatus status, String keyword) {
+        return tasks.stream()
+                .filter(task -> status == null || task.getStatus() == status)
+                .filter(task -> keyword == null || task.getContent().toLowerCase().contains(keyword.toLowerCase()))
+                .map(TaskMapper::toResponse)
+                .toList();
     }
 
     public TaskResponse createTask(CreateTaskRequest request) {
