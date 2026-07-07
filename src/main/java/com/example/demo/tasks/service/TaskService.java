@@ -1,6 +1,12 @@
 package com.example.demo.tasks.service;
 
-import com.example.demo.tasks.dto.TaskDTO;
+import com.example.demo.tasks.domain.model.Task;
+import com.example.demo.tasks.dto.mapper.TaskMapper;
+import com.example.demo.tasks.dto.request.CreateTaskRequest;
+import com.example.demo.tasks.dto.request.UpdateTaskRequest;
+import com.example.demo.tasks.dto.response.TaskResponse;
+import com.example.demo.tasks.exception.TaskAlreadyExistsException;
+import com.example.demo.tasks.exception.TaskNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -10,65 +16,64 @@ import java.util.List;
 @Service
 @Slf4j
 public class TaskService {
-    private List<TaskDTO> tasks = new ArrayList<>();
+    private final List<Task> tasks = new ArrayList<>();
 
-    public List<TaskDTO> getTasks() {
-        log.info("Getting tasks: ");
-        return tasks;
+    public List<TaskResponse> getTasks() {
+        log.info("Getting tasks ");
+        return tasks.stream().map(TaskMapper::toResponse).toList();
     }
 
-    public List<TaskDTO> addTask(TaskDTO task) {
-        TaskDTO buildTask = buildTask(task);
+    public TaskResponse createTask(CreateTaskRequest request) {
+        validateUniqueId(request.id());
+        Task task = TaskMapper.toModel(request);
 
-        tasks.add(buildTask);
-        log.info("Added task: " + buildTask);
+        tasks.add(task);
+        log.info("Added task: {}", task);
 
-        return tasks;
+        return TaskMapper.toResponse(task);
     }
 
-    public TaskDTO buildTask(TaskDTO task) {
-        return TaskDTO.builder()
-                .id(task.getId())
-                .content(task.getContent())
-                .dueDate(task.getDueDate())
-                .status(task.getStatus())
-                .build();
-    }
 
     public void deleteTask(Long taskId) {
-        tasks.removeIf(task -> task.getId().equals(taskId));
+        Task task = findTask(taskId);
+        log.info("Deleting task with id {}", taskId);
+        tasks.remove(task);
     }
 
-    public TaskDTO patchTask(Long taskId, TaskDTO updatedTask) {
-        for (TaskDTO task : tasks) {
-            if (task.getId().equals(taskId)) {
+    public TaskResponse updateTask(Long taskId, UpdateTaskRequest updatedTask) {
+        Task task = findTask(taskId);
 
-                if (updatedTask.getContent() != null) {
-                    task.setContent(updatedTask.getContent());
-                }
-
-                if (updatedTask.getDueDate() != null) {
-                    task.setDueDate(updatedTask.getDueDate());
-                }
-
-                if (updatedTask.getStatus() != null) {
-                    task.setStatus(updatedTask.getStatus());
-                }
-
-                return task;
-            }
+        if(updatedTask.content()!=null){
+            task.setContent(updatedTask.content());
         }
 
-        return null;
+        if(updatedTask.dueDate()!=null){
+            task.setDueDate(updatedTask.dueDate());
+        }
+
+        if(updatedTask.status()!=null){
+            task.setStatus(updatedTask.status());
+        }
+        log.info("Updating task with id {}", taskId);
+
+        return TaskMapper.toResponse(task);
     }
 
-    public TaskDTO getTaskById(Long taskId) {
-        for(TaskDTO task : tasks){
-            if(task.getId().equals(taskId)){
-                return task;
-            }
+    public TaskResponse getTaskById(Long taskId) {
+        log.info("Getting task with id {}", taskId);
+        return TaskMapper.toResponse(findTask(taskId));
+    }
+
+    private void validateUniqueId(Long id){
+        boolean exists = tasks.stream().anyMatch(task -> task.getId().equals(id));
+
+        if(exists){
+            throw new TaskAlreadyExistsException(id);
         }
-        return null;
+    }
+
+    private Task findTask(Long id){
+        return tasks.stream().filter(task -> task.getId().equals(id)).findFirst().orElseThrow(() -> new TaskNotFoundException(id));
     }
 
 }
