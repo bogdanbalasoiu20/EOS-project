@@ -6,11 +6,14 @@ import com.example.demo.tasks.dto.mapper.TaskMapper;
 import com.example.demo.tasks.dto.request.CreateTaskRequest;
 import com.example.demo.tasks.dto.request.UpdateTaskRequest;
 import com.example.demo.tasks.dto.response.TaskResponse;
+import com.example.demo.tasks.exception.TaskAlreadyCompletedException;
 import com.example.demo.tasks.exception.TaskAlreadyExistsException;
 import com.example.demo.tasks.exception.TaskNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -88,6 +91,41 @@ public class TaskService {
                 .filter(task -> task.getDueDate().isBefore(LocalDateTime.now()) && task.getStatus() != TaskStatus.DONE)
                 .map(TaskMapper::toResponse)
                 .toList();
+    }
+
+    private List<TaskResponse> getTasksBetween(LocalDate start, LocalDate end) {
+        return tasks.stream()
+                .filter(task -> {
+                    LocalDate dueDate = task.getDueDate().toLocalDate();
+
+                    return !dueDate.isBefore(start) && !dueDate.isAfter(end);
+                })
+                .map(TaskMapper::toResponse)
+                .toList();
+    }
+
+    public List<TaskResponse> getTodayTasks() {
+        LocalDate today = LocalDate.now();
+
+        return getTasksBetween(today, today);
+    }
+
+    public List<TaskResponse> getThisWeekTasks() {
+        LocalDate today = LocalDate.now();
+
+        return getTasksBetween(today.with(DayOfWeek.MONDAY), today.with(DayOfWeek.SUNDAY));
+    }
+
+    public TaskResponse completeTask(Long taskId) {
+        log.info("Completing task with id {}", taskId);
+        Task task = findTask(taskId);
+
+        if (task.getStatus() == TaskStatus.DONE) {
+            throw new TaskAlreadyCompletedException(taskId);
+        }
+
+        task.setStatus(TaskStatus.DONE);
+        return TaskMapper.toResponse(task);
     }
 
 }

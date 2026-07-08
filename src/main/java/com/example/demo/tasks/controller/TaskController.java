@@ -53,4 +53,19 @@ public class TaskController {
         return ResponseEntity.ok(taskService.getOverdueTasks());
     }
 
+    @GetMapping("/today")
+    public ResponseEntity<List<TaskResponse>> getTodayTasks() {
+        return ResponseEntity.ok(taskService.getTodayTasks());
+    }
+
+    @GetMapping("/this-week")
+    public ResponseEntity<List<TaskResponse>> getThisWeekTasks() {
+        return ResponseEntity.ok(taskService.getThisWeekTasks());
+    }
+
+    @PatchMapping("/{taskId}/complete")
+    public ResponseEntity<TaskResponse> completeTask(@PathVariable Long taskId) {
+        return ResponseEntity.ok(taskService.completeTask(taskId));
+    }
+
 }
