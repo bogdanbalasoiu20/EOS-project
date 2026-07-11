@@ -7,7 +7,7 @@ public record UserResponse(
         Long userId,
         String username,
         LocalDate birthDate,
-        Boolean internal,
+        Integer internal,
         String createdBy,
         LocalDateTime creationDate,
         String lastUpdatedBy,

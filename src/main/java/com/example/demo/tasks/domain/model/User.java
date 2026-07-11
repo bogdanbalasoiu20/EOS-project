@@ -26,7 +26,7 @@ public class User {
     private LocalDate birthDate;
 
     @Column(name = "IS_INTERNAL")
-    private Boolean internal;
+    private Integer internal;
 
     @Column(name = "CREATION_DATE", nullable = false)
     private LocalDateTime creationDate;

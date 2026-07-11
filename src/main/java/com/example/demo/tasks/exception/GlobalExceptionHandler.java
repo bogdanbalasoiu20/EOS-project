@@ -51,4 +51,28 @@ public class GlobalExceptionHandler {
                                                     "Validation failed",
                                                     errors));
     }
+
+    @ExceptionHandler(StatusTypeNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handle(StatusTypeNotFoundException ex) {
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(
+                        LocalDateTime.now(),
+                        HttpStatus.NOT_FOUND.value(),
+                        ex.getMessage(),
+                        null
+                ));
+    }
+
+    @ExceptionHandler(StatusTypeAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handle(StatusTypeAlreadyExistsException ex) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(
+                        LocalDateTime.now(),
+                        HttpStatus.CONFLICT.value(),
+                        ex.getMessage(),
+                        null
+                ));
+    }
 }

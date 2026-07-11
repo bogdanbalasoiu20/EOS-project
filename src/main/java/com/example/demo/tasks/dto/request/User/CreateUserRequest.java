@@ -14,7 +14,7 @@ public record CreateUserRequest(
         LocalDate birthDate,
 
         @NotNull(message = "Internal flag is required")
-        Boolean internal,
+        Integer internal,
 
         @NotBlank(message = "Created by is required")
         String createdBy
