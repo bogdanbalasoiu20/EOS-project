@@ -30,6 +30,15 @@ public class GlobalExceptionHandler {
                                                             null));
     }
 
+    @ExceptionHandler(TaskAlreadyCompletedException.class)
+    public ResponseEntity<ErrorResponse> handle(TaskAlreadyCompletedException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(
+                                                            LocalDateTime.now(),
+                                                            HttpStatus.CONFLICT.value(),
+                                                            ex.getMessage(),
+                                                            null));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handle(MethodArgumentNotValidException ex){
         Map<String,String> errors = new HashMap<>();
