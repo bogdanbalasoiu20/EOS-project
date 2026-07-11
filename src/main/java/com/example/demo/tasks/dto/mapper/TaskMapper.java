@@ -1,8 +1,8 @@
 package com.example.demo.tasks.dto.mapper;
 
 import com.example.demo.tasks.domain.model.Task;
-import com.example.demo.tasks.dto.request.CreateTaskRequest;
-import com.example.demo.tasks.dto.response.TaskResponse;
+import com.example.demo.tasks.dto.request.Task.CreateTaskRequest;
+import com.example.demo.tasks.dto.response.Task.TaskResponse;
 import org.springframework.stereotype.Component;
 
 @Component

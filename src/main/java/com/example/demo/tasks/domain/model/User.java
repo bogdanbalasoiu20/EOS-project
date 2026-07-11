@@ -3,39 +3,35 @@ package com.example.demo.tasks.domain.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "TASKS")
+@Table(name = "USERS")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Task {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "TASK_ID")
-    private Long taskId;
+    @Column(name = "USER_ID")
+    private Long userId;
 
-    @Column(name = "TASK_NAME", nullable = false)
-    private String taskName;
+    @Column(name = "USERNAME", nullable = false)
+    private String username;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "STATUS_TYPE_ID")
-    private StatusType statusType;
+    @Column(name = "BIRTH_DATE")
+    private LocalDate birthDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "USER_ID")
-    private User user;
-
-    @Column(name = "DUE_DATE")
-    private LocalDateTime dueDate;
+    @Column(name = "IS_INTERNAL")
+    private Boolean internal;
 
     @Column(name = "CREATION_DATE", nullable = false)
     private LocalDateTime creationDate;
 
-    @Column(name = "CREATED_BY")
+    @Column(name = "CREATED_BY", nullable = false)
     private String createdBy;
 
     @Column(name = "LAST_UPDATE_DATE", nullable = false)

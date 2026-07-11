@@ -15,17 +15,38 @@ import java.time.LocalDateTime;
 public class StatusType {
 
     @Id
-    @Column(name = "STATUS_TYPE_ID")
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "STATUS_TYPE_ID")
     private String statusTypeId;
 
     @Column(name = "STATUS_NAME", nullable = false)
     private String statusName;
 
-    @Column(name = "CREATED_BY")
+    @Column(name = "CREATION_DATE", nullable = false)
+    private LocalDateTime creationDate;
+
+    @Column(name = "CREATED_BY", nullable = false)
     private String createdBy;
 
-    @Column(name = "CREATION_DATE")
-    @Builder.Default
-    private LocalDateTime creationDate = LocalDateTime.now();
+    @Column(name = "LAST_UPDATE_DATE", nullable = false)
+    private LocalDateTime lastUpdateDate;
+
+    @Column(name = "LAST_UPDATED_BY", nullable = false)
+    private String lastUpdatedBy;
+
+    @Column(name = "CREATED_BY_FULLNAME")
+    private String createdByFullname;
+
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+
+        creationDate = now;
+        lastUpdateDate = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        lastUpdateDate = LocalDateTime.now();
+    }
 }

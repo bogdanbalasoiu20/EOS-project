@@ -1,9 +1,9 @@
 package com.example.demo.tasks.controller;
 
 import com.example.demo.tasks.domain.TaskStatus;
-import com.example.demo.tasks.dto.request.CreateTaskRequest;
-import com.example.demo.tasks.dto.request.UpdateTaskRequest;
-import com.example.demo.tasks.dto.response.TaskResponse;
+import com.example.demo.tasks.dto.request.Task.CreateTaskRequest;
+import com.example.demo.tasks.dto.request.Task.UpdateTaskRequest;
+import com.example.demo.tasks.dto.response.Task.TaskResponse;
 import com.example.demo.tasks.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
