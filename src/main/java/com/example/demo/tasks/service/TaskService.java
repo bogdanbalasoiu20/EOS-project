@@ -187,6 +187,15 @@ public class TaskService {
                 .toList();
     }
 
+    public List<TaskResponse> getTasksBetween(Long userId, LocalDateTime start, LocalDateTime end) {
+        findUser(userId);
+
+        return taskRepository.findByUserUserIdAndDueDateBetween(userId, start, end)
+                .stream()
+                .map(taskMapper::toResponse)
+                .toList();
+    }
+
 
 
     private Task findTask(Long id) {

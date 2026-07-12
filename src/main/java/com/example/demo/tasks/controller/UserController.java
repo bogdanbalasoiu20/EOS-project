@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -87,5 +88,11 @@ public class UserController {
     @GetMapping("/{userId}/tasks/this-week")
     public ResponseEntity<List<TaskResponse>> getThisWeekTasks(@PathVariable Long userId) {
         return ResponseEntity.ok(taskService.getThisWeekTasks(userId));
+    }
+
+    //testat, merge
+    @GetMapping("/{userId}/tasks/date-range")
+    public ResponseEntity<List<TaskResponse>> getTasksBetween(@PathVariable Long userId, @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        return ResponseEntity.ok(taskService.getTasksBetween(userId, start, end));
     }
 }

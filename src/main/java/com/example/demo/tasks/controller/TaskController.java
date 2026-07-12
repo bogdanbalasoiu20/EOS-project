@@ -63,10 +63,10 @@ public class TaskController {
         return ResponseEntity.ok(taskService.assignTask(taskId, request));
     }
 
+    //testat, merge
     @GetMapping("/unassigned")
     public ResponseEntity<List<TaskResponse>> getUnassignedTasks() {
         return ResponseEntity.ok(taskService.getUnassignedTasks());
     }
-
 
 }
