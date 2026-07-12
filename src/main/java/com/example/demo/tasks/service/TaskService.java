@@ -5,6 +5,7 @@ import com.example.demo.tasks.domain.model.StatusType;
 import com.example.demo.tasks.domain.model.Task;
 import com.example.demo.tasks.domain.model.User;
 import com.example.demo.tasks.dto.mapper.TaskMapper;
+import com.example.demo.tasks.dto.request.Task.AssignTaskRequest;
 import com.example.demo.tasks.dto.request.Task.CreateTaskRequest;
 import com.example.demo.tasks.dto.request.Task.UpdateTaskRequest;
 import com.example.demo.tasks.dto.response.Task.TaskResponse;
@@ -54,16 +55,15 @@ public class TaskService {
 
     @Transactional
     public TaskResponse createTask(CreateTaskRequest request) {
-        User user = findUser(request.userId());
         StatusType statusType = findStatus(request.statusTypeId());
-
         Task task = taskMapper.toEntity(request);
-
-        task.setUser(user);
         task.setStatusType(statusType);
 
-        Task savedTask = taskRepository.save(task);
+        if (request.userId() != null) {
+            task.setUser(findUser(request.userId()));
+        }
 
+        Task savedTask = taskRepository.save(task);
         log.info("Created task with id {}", savedTask.getTaskId());
 
         return taskMapper.toResponse(savedTask);
@@ -161,6 +161,33 @@ public class TaskService {
                 .map(taskMapper::toResponse)
                 .toList();
     }
+
+    @Transactional
+    public TaskResponse assignTask(Long taskId, AssignTaskRequest request) {
+        Task task = findTask(taskId);
+        User user = findUser(request.userId());
+
+        if (task.getUser() != null && task.getUser().getUserId().equals(user.getUserId())) {
+
+            throw new TaskAlreadyAssignedException(taskId, user.getUserId());
+        }
+
+        task.setUser(user);
+        Task updatedTask = taskRepository.save(task);
+        log.info("Assigned task {} to user {}", taskId, user.getUserId());
+        return taskMapper.toResponse(updatedTask);
+    }
+
+    public List<TaskResponse> getUnassignedTasks() {
+        log.info("Retrieving unassigned tasks");
+
+        return taskRepository.findByUserIsNull()
+                .stream()
+                .map(taskMapper::toResponse)
+                .toList();
+    }
+
+
 
     private Task findTask(Long id) {
         return taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));

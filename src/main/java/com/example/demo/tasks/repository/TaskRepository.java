@@ -18,4 +18,5 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByStatusTypeStatusNameAndTaskNameContainingIgnoreCase(String status, String keyword);
     List<Task> findByUserUserIdAndDueDateBefore(Long userId, LocalDateTime dueDate);
     List<Task> findByUserUserIdAndDueDateBetween(Long userId, LocalDateTime start, LocalDateTime end);
+    List<Task> findByUserIsNull();
 }

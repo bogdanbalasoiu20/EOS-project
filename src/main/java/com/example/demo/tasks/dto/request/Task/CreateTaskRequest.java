@@ -13,7 +13,7 @@ public record CreateTaskRequest(
         @NotNull(message = "Status type is required")
         String statusTypeId,
 
-        @NotNull(message = "User is required")
+        //@NotNull(message = "User is required")
         Long userId,
 
         @NotNull(message = "Due date is required")

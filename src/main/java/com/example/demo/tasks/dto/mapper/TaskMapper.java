@@ -17,13 +17,21 @@ public class TaskMapper {
     }
 
     public TaskResponse toResponse(Task task) {
+        Long userId = null;
+        String username = null;
+
+        if (task.getUser() != null) {
+            userId = task.getUser().getUserId();
+            username = task.getUser().getUsername();
+        }
+
         return new TaskResponse(
                 task.getTaskId(),
                 task.getTaskName(),
                 task.getStatusType().getStatusTypeId(),
                 task.getStatusType().getStatusName(),
-                task.getUser().getUserId(),
-                task.getUser().getUsername(),
+                userId,
+                username,
                 task.getDueDate(),
                 task.getCreatedBy(),
                 task.getCreationDate(),

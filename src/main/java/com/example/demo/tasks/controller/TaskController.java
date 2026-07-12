@@ -1,5 +1,6 @@
 package com.example.demo.tasks.controller;
 
+import com.example.demo.tasks.dto.request.Task.AssignTaskRequest;
 import com.example.demo.tasks.dto.request.Task.CreateTaskRequest;
 import com.example.demo.tasks.dto.request.Task.UpdateTaskRequest;
 import com.example.demo.tasks.dto.response.Task.TaskResponse;
@@ -56,6 +57,16 @@ public class TaskController {
         return ResponseEntity.ok(taskService.completeTask(taskId));
     }
 
+    //testat, merge
+    @PatchMapping("/{taskId}/assign")
+    public ResponseEntity<TaskResponse> assignTask(@PathVariable Long taskId, @Valid @RequestBody AssignTaskRequest request) {
+        return ResponseEntity.ok(taskService.assignTask(taskId, request));
+    }
+
+    @GetMapping("/unassigned")
+    public ResponseEntity<List<TaskResponse>> getUnassignedTasks() {
+        return ResponseEntity.ok(taskService.getUnassignedTasks());
+    }
 
 
 }

@@ -95,4 +95,16 @@ public class GlobalExceptionHandler {
                         null
                 ));
     }
+
+    @ExceptionHandler(TaskAlreadyAssignedException.class)
+    public ResponseEntity<ErrorResponse> handle(TaskAlreadyAssignedException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(
+                        LocalDateTime.now(),
+                        HttpStatus.CONFLICT.value(),
+                        ex.getMessage(),
+                        null
+                ));
+    }
+
 }
