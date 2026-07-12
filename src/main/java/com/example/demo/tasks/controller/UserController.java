@@ -2,7 +2,10 @@ package com.example.demo.tasks.controller;
 
 import com.example.demo.tasks.dto.request.User.CreateUserRequest;
 import com.example.demo.tasks.dto.request.User.UpdateUserRequest;
+import com.example.demo.tasks.dto.response.Task.TaskResponse;
 import com.example.demo.tasks.dto.response.User.UserResponse;
+import com.example.demo.tasks.dto.response.User.UserTaskCountResponse;
+import com.example.demo.tasks.service.TaskService;
 import com.example.demo.tasks.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +20,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final TaskService taskService;
 
     //testat, merge
     @GetMapping
-    public ResponseEntity<List<UserResponse>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<List<UserResponse>> getUsers(@RequestParam(required = false) String username, @RequestParam(required = false) Integer internal) {
+        return ResponseEntity.ok(userService.getUsers(username, internal));
     }
 
     //testat, merge
@@ -47,5 +51,41 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();
+    }
+
+    //testat, merge
+    @GetMapping("/without-tasks")
+    public ResponseEntity<List<UserResponse>> getUsersWithoutTasks() {
+        return ResponseEntity.ok(userService.getUsersWithoutTasks());
+    }
+
+    //testat, merge
+    @GetMapping("/{userId}/tasks")
+    public ResponseEntity<List<TaskResponse>> getUserTasks(@PathVariable Long userId) {
+        return ResponseEntity.ok(userService.getUserTasks(userId));
+    }
+
+    //testat, merge
+    @GetMapping("/{userId}/task-count")
+    public ResponseEntity<UserTaskCountResponse> getTaskCount(@PathVariable Long userId) {
+        return ResponseEntity.ok(userService.getTaskCount(userId));
+    }
+
+    //testat, merge
+    @GetMapping("/{userId}/tasks/overdue")
+    public ResponseEntity<List<TaskResponse>> getOverdueTasks(@PathVariable Long userId) {
+        return ResponseEntity.ok(taskService.getOverdueTasks(userId));
+    }
+
+    //testat, merge
+    @GetMapping("/{userId}/tasks/today")
+    public ResponseEntity<List<TaskResponse>> getTodayTasks(@PathVariable Long userId) {
+        return ResponseEntity.ok(taskService.getTodayTasks(userId));
+    }
+
+    //testat, merge
+    @GetMapping("/{userId}/tasks/this-week")
+    public ResponseEntity<List<TaskResponse>> getThisWeekTasks(@PathVariable Long userId) {
+        return ResponseEntity.ok(taskService.getThisWeekTasks(userId));
     }
 }
