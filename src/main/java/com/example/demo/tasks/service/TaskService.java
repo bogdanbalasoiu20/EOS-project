@@ -1,6 +1,5 @@
 package com.example.demo.tasks.service;
 
-import com.example.demo.tasks.domain.TaskStatus;
 import com.example.demo.tasks.domain.model.StatusType;
 import com.example.demo.tasks.domain.model.Task;
 import com.example.demo.tasks.domain.model.User;
@@ -22,6 +21,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -50,7 +50,10 @@ public class TaskService {
             tasks = taskRepository.findAll();
         }
 
-        return tasks.stream().map(taskMapper::toResponse).toList();
+        return tasks.stream()
+                .sorted(Comparator.comparing(Task::getDueDate).reversed())
+                .map(taskMapper::toResponse)
+                .toList();
     }
 
     @Transactional
@@ -129,7 +132,7 @@ public class TaskService {
         findUser(userId);
         log.info("Retrieving overdue tasks for user {}", userId);
 
-        return taskRepository.findByUserUserIdAndDueDateBefore(userId,LocalDateTime.now())
+        return taskRepository.findByUserUserIdAndDueDateBefore(userId, LocalDateTime.now())
                 .stream()
                 .filter(task -> !COMPLETED_STATUS.equalsIgnoreCase(task.getStatusType().getStatusName()))
                 .map(taskMapper::toResponse)
@@ -143,7 +146,7 @@ public class TaskService {
         LocalDateTime end = today.atTime(LocalTime.MAX);
         log.info("Retrieving today's tasks for user {}", userId);
 
-        return taskRepository.findByUserUserIdAndDueDateBetween(userId,start,end)
+        return taskRepository.findByUserUserIdAndDueDateBetween(userId, start, end)
                 .stream()
                 .map(taskMapper::toResponse)
                 .toList();
@@ -156,7 +159,7 @@ public class TaskService {
         LocalDate endOfWeek = today.with(DayOfWeek.SUNDAY);
         log.info("Retrieving this week's tasks for user {}", userId);
 
-        return taskRepository.findByUserUserIdAndDueDateBetween(userId,startOfWeek.atStartOfDay(),endOfWeek.atTime(LocalTime.MAX))
+        return taskRepository.findByUserUserIdAndDueDateBetween(userId, startOfWeek.atStartOfDay(), endOfWeek.atTime(LocalTime.MAX))
                 .stream()
                 .map(taskMapper::toResponse)
                 .toList();
@@ -168,7 +171,6 @@ public class TaskService {
         User user = findUser(request.userId());
 
         if (task.getUser() != null && task.getUser().getUserId().equals(user.getUserId())) {
-
             throw new TaskAlreadyAssignedException(taskId, user.getUserId());
         }
 
@@ -195,7 +197,6 @@ public class TaskService {
                 .map(taskMapper::toResponse)
                 .toList();
     }
-
 
 
     private Task findTask(Long id) {

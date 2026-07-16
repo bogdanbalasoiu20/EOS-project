@@ -25,6 +25,12 @@ public class User {
     @Column(name = "BIRTH_DATE")
     private LocalDate birthDate;
 
+    @Column(name = "EMAIL")
+    private String email;
+
+    @Column(name = "PASSWORD")
+    private String password;
+
     @Column(name = "IS_INTERNAL")
     private Integer internal;
 

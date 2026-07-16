@@ -1,6 +1,5 @@
 package com.example.demo.tasks.controller;
 
-import com.example.demo.tasks.dto.StatusTypeDto;
 import com.example.demo.tasks.dto.request.StatusType.CreateStatusTypeRequest;
 import com.example.demo.tasks.dto.request.StatusType.UpdateStatusTypeRequest;
 import com.example.demo.tasks.dto.response.StatusType.StatusTypeResponse;

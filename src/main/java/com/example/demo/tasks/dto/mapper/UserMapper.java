@@ -11,6 +11,7 @@ public class UserMapper {
         return new UserResponse(
                 user.getUserId(),
                 user.getUsername(),
+                user.getEmail(),
                 user.getBirthDate(),
                 user.getInternal(),
                 user.getCreatedBy(),
@@ -24,10 +25,12 @@ public class UserMapper {
     public User toEntity(CreateUserRequest request) {
         return User.builder()
                 .username(request.username())
+                .email(request.email())
+                .password(request.password())
                 .birthDate(request.birthDate())
-                .internal(request.internal())
-                .createdBy(request.createdBy())
-                .lastUpdatedBy(request.createdBy())
+                .internal(1)
+                .createdBy("SYSTEM")
+                .lastUpdatedBy("SYSTEM")
                 .build();
     }
 

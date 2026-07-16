@@ -1,7 +1,6 @@
 package com.example.demo.tasks.dto.mapper;
 
 import com.example.demo.tasks.domain.model.StatusType;
-import com.example.demo.tasks.dto.StatusTypeDto;
 import com.example.demo.tasks.dto.request.StatusType.CreateStatusTypeRequest;
 import com.example.demo.tasks.dto.response.StatusType.StatusTypeResponse;
 import org.springframework.stereotype.Component;

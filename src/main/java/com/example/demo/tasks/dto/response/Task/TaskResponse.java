@@ -1,6 +1,5 @@
 package com.example.demo.tasks.dto.response.Task;
 
-import com.example.demo.tasks.domain.TaskStatus;
 
 import java.time.LocalDateTime;
 
@@ -17,4 +16,5 @@ public record TaskResponse(
         String lastUpdatedBy,
         LocalDateTime lastUpdateDate,
         String createdByFullname
-) {}
+) {
+}
