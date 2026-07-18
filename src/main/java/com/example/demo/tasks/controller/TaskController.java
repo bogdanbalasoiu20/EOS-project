@@ -28,9 +28,10 @@ public class TaskController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) Boolean unassigned,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate) {
 
-        return ResponseEntity.ok(taskService.getTasks(status, keyword, userId, dueDate));
+        return ResponseEntity.ok(taskService.getTasks(status, keyword, userId, unassigned, dueDate));
     }
 
     //testat, merge

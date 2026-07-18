@@ -36,7 +36,7 @@ public class TaskService {
     private final StatusTypeRepository statusTypeRepository;
     private final TaskMapper taskMapper;
 
-    public List<TaskResponse> getTasks(String status, String keyword, Long userId, LocalDate dueDate) {
+    public List<TaskResponse> getTasks(String status, String keyword, Long userId, Boolean unassigned, LocalDate dueDate) {
         log.info("Retrieving tasks with status={}, keyword={}, userId={}, dueDate={}", status, keyword, userId, dueDate);
 
         Stream<Task> tasks = taskRepository.findAll().stream();
@@ -52,6 +52,10 @@ public class TaskService {
 
         if (userId != null) {
             tasks = tasks.filter(task -> task.getUser() != null && task.getUser().getUserId().equals(userId));
+        }
+
+        if (Boolean.TRUE.equals(unassigned)) {
+            tasks = tasks.filter(task -> task.getUser() == null);
         }
 
         if (dueDate != null) {
