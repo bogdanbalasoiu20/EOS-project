@@ -7,10 +7,12 @@ import com.example.demo.tasks.dto.response.Task.TaskResponse;
 import com.example.demo.tasks.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -22,8 +24,13 @@ public class TaskController {
 
     //testat, merge
     @GetMapping
-    public ResponseEntity<List<TaskResponse>> getTasks(@RequestParam(required = false) String status, @RequestParam(required = false) String keyword) {
-        return ResponseEntity.ok(taskService.getTasks(status, keyword));
+    public ResponseEntity<List<TaskResponse>> getTasks(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate) {
+
+        return ResponseEntity.ok(taskService.getTasks(status, keyword, userId, dueDate));
     }
 
     //testat, merge

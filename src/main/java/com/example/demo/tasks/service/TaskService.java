@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -35,23 +36,29 @@ public class TaskService {
     private final StatusTypeRepository statusTypeRepository;
     private final TaskMapper taskMapper;
 
-    public List<TaskResponse> getTasks(String status, String keyword) {
-        log.info("Retrieving tasks with status={} and keyword={}", status, keyword);
+    public List<TaskResponse> getTasks(String status, String keyword, Long userId, LocalDate dueDate) {
+        log.info("Retrieving tasks with status={}, keyword={}, userId={}, dueDate={}", status, keyword, userId, dueDate);
 
-        List<Task> tasks;
+        Stream<Task> tasks = taskRepository.findAll().stream();
 
-        if (status != null && keyword != null) {
-            tasks = taskRepository.findByStatusTypeStatusNameAndTaskNameContainingIgnoreCase(status, keyword);
-        } else if (status != null) {
-            tasks = taskRepository.findByStatusTypeStatusName(status);
-        } else if (keyword != null) {
-            tasks = taskRepository.findByTaskNameContainingIgnoreCase(keyword);
-        } else {
-            tasks = taskRepository.findAll();
+        if (status != null && !status.isBlank()) {
+            tasks = tasks.filter(task -> task.getStatusType().getStatusName().equalsIgnoreCase(status));
         }
 
-        return tasks.stream()
-                .sorted(Comparator.comparing(Task::getDueDate).reversed())
+        if (keyword != null && !keyword.isBlank()) {
+            String search = keyword.toLowerCase();
+            tasks = tasks.filter(task -> task.getTaskName().toLowerCase().contains(search));
+        }
+
+        if (userId != null) {
+            tasks = tasks.filter(task -> task.getUser() != null && task.getUser().getUserId().equals(userId));
+        }
+
+        if (dueDate != null) {
+            tasks = tasks.filter(task -> task.getDueDate() != null && task.getDueDate().toLocalDate().equals(dueDate));
+        }
+
+        return tasks.sorted(Comparator.comparing(Task::getDueDate).reversed())
                 .map(taskMapper::toResponse)
                 .toList();
     }
