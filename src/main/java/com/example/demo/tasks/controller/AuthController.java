@@ -4,6 +4,7 @@ import com.example.demo.tasks.dto.request.Auth.LoginRequest;
 import com.example.demo.tasks.dto.response.Auth.LoginResponse;
 import com.example.demo.tasks.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.jose4j.lang.JoseException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,7 +18,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        return authService.login(request);
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) throws JoseException {
+        return ResponseEntity.ok(authService.login(request));
     }
 }
