@@ -28,7 +28,7 @@ public class UserMapper {
                 .email(request.email())
                 .password(request.password())
                 .birthDate(request.birthDate())
-                .internal(1)
+                .internal(0)
                 .createdBy("SYSTEM")
                 .lastUpdatedBy("SYSTEM")
                 .build();

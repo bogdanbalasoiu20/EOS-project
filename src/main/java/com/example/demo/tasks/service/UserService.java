@@ -49,15 +49,6 @@ public class UserService {
         return userMapper.toResponse(findUser(id));
     }
 
-    public UserResponse createUser(CreateUserRequest request) {
-        if (userRepository.existsByUsername(request.username())) {
-            throw new UserAlreadyExistsException(request.username());
-        }
-
-        User user = userMapper.toEntity(request);
-
-        return userMapper.toResponse(userRepository.save(user));
-    }
 
     public UserResponse updateUser(Long id, UpdateUserRequest request) {
         User user = findUser(id);

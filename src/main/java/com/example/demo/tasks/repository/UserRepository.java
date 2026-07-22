@@ -25,4 +25,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
         """)
     List<User> findUsersWithoutTasks();
     Optional<User> findByEmail(String email);
+    boolean existsByEmail(String email);
 }

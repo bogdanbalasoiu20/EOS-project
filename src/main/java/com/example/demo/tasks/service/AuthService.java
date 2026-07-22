@@ -1,8 +1,13 @@
 package com.example.demo.tasks.service;
 
 import com.example.demo.tasks.domain.model.User;
+import com.example.demo.tasks.dto.mapper.UserMapper;
 import com.example.demo.tasks.dto.request.Auth.LoginRequest;
+import com.example.demo.tasks.dto.request.User.CreateUserRequest;
 import com.example.demo.tasks.dto.response.Auth.LoginResponse;
+import com.example.demo.tasks.dto.response.User.UserResponse;
+import com.example.demo.tasks.exception.UnauthorizedException;
+import com.example.demo.tasks.exception.UserAlreadyExistsException;
 import com.example.demo.tasks.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +28,7 @@ import java.util.Base64;
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Value("${jwt.secret: }") String jwtSecret;
     @Value("${jwt.expiration.ms: }") String jwtExpiration;
@@ -31,7 +37,7 @@ public class AuthService {
         String email = new String(Base64.getDecoder().decode(credentials.email()));
         String password = new String(Base64.getDecoder().decode(credentials.password()));
 
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Invalid email or password"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UnauthorizedException("Invalid email or password"));
 
         String hashPassword = Credential.MD5
                 .digest(password)
@@ -40,7 +46,7 @@ public class AuthService {
                 .toLowerCase();
 
         if (!hashPassword.equals(user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+            throw new UnauthorizedException("Invalid email or password");
         }
 
         String token = createJwtToken(credentials.email());
@@ -52,6 +58,25 @@ public class AuthService {
                 token,
                 "Login successful"
         );
+    }
+
+    public UserResponse register(CreateUserRequest request) {
+        if(userRepository.existsByUsername(request.username())){
+            throw new UserAlreadyExistsException("username", request.username());
+        }
+
+        if(userRepository.existsByEmail(request.email())){
+            throw new UserAlreadyExistsException("email",request.email());
+        }
+
+        User user = userMapper.toEntity(request);
+        user.setPassword(Credential.MD5.digest(request.password())
+                .replaceFirst("MD5:", "")
+                .trim()
+                .toLowerCase());
+
+        return userMapper.toResponse(userRepository.save(user));
+
     }
 
     private String createJwtToken(String email) throws JoseException {
@@ -66,20 +91,4 @@ public class AuthService {
         return jws.getCompactSerialization();
     }
 
-
-//    public ResponseEntity<LoginResponse> login(LoginRequest request) {
-//        Optional<User> optionalUser = userRepository.findByEmail(request.email());
-//
-//        if (optionalUser.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new LoginResponse(null,null,null,null, "Invalid email or password"));
-//        }
-//
-//        User user = optionalUser.get();
-//
-//        if (!user.getPassword().equals(request.password())) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new LoginResponse(null, null,null,null,"Invalid email or password"));
-//        }
-//
-//        return ResponseEntity.ok(new LoginResponse(user.getUserId(),user.getUsername(), user.getEmail(), user.getPassword(), "Login successful"));
-//    }
 }
