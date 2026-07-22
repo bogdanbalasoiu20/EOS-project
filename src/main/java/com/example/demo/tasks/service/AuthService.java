@@ -34,11 +34,13 @@ public class AuthService {
     @Value("${jwt.expiration.ms: }") String jwtExpiration;
 
     public LoginResponse login(LoginRequest credentials) throws JoseException {
+        //decodez datele din request din base64 in text clar
         String email = new String(Base64.getDecoder().decode(credentials.email()));
         String password = new String(Base64.getDecoder().decode(credentials.password()));
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> new UnauthorizedException("Invalid email or password"));
 
+        //hash cu algoritmul MD5
         String hashPassword = Credential.MD5
                 .digest(password)
                 .replaceFirst("MD5:", "")
@@ -61,6 +63,10 @@ public class AuthService {
     }
 
     public UserResponse register(CreateUserRequest request) {
+        String username = new String(Base64.getDecoder().decode(request.username()));
+        String email = new String(Base64.getDecoder().decode(request.email()));
+        String password = new String(Base64.getDecoder().decode(request.password()));
+
         if(userRepository.existsByUsername(request.username())){
             throw new UserAlreadyExistsException("username", request.username());
         }
@@ -70,7 +76,10 @@ public class AuthService {
         }
 
         User user = userMapper.toEntity(request);
-        user.setPassword(Credential.MD5.digest(request.password())
+
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPassword(Credential.MD5.digest(password)
                 .replaceFirst("MD5:", "")
                 .trim()
                 .toLowerCase());
@@ -80,15 +89,15 @@ public class AuthService {
     }
 
     private String createJwtToken(String email) throws JoseException {
-        JwtClaims claims = new JwtClaims();
-        claims.setIssuedAtToNow();
-        claims.setExpirationTimeMinutesInTheFuture((float) Long.parseLong(jwtExpiration)/(1000*60));
-        claims.setSubject(email);
-        JsonWebSignature jws = new JsonWebSignature();
-        jws.setPayload(claims.toJson());
-        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.HMAC_SHA256);
-        jws.setKey(new AesKey(jwtSecret.getBytes(StandardCharsets.UTF_8)));
-        return jws.getCompactSerialization();
+        JwtClaims claims = new JwtClaims();  //creez continutul tokenului
+        claims.setIssuedAtToNow();  //setez data emiterii (iat - issued at)
+        claims.setExpirationTimeMinutesInTheFuture((float) Long.parseLong(jwtExpiration)/(1000*60));  //setez data expirarii (tokenul e valid o ora)
+        claims.setSubject(email);  //setez utilizatorul prin emailul sau
+        JsonWebSignature jws = new JsonWebSignature();  //creez tokenul
+        jws.setPayload(claims.toJson());  //pun informatia in token
+        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.HMAC_SHA256); //aleg algortimul de semnare (pt a stii daca tokenul sufera modificari)
+        jws.setKey(new AesKey(jwtSecret.getBytes(StandardCharsets.UTF_8))); //setez cheia secreta (pentru semnare tokenului)
+        return jws.getCompactSerialization();  //generez jwt-ul
     }
 
 }
