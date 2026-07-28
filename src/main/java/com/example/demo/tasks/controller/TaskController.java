@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -24,6 +25,7 @@ public class TaskController {
 
     //testat, merge
     @GetMapping
+    @PreAuthorize("@checkPermissions.hasPermission('TASK','READ')")
     public ResponseEntity<List<TaskResponse>> getTasks(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String keyword,
@@ -36,24 +38,28 @@ public class TaskController {
 
     //testat, merge
     @GetMapping("/{taskId}")
+    @PreAuthorize("@checkPermissions.hasPermission('TASK','READ')")
     public ResponseEntity<TaskResponse> getTaskById(@PathVariable Long taskId) {
         return ResponseEntity.ok(taskService.getTaskById(taskId));
     }
 
     //testat, merge
     @PostMapping
+    @PreAuthorize("@checkPermissions.hasPermission('TASK','CREATE')")
     public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody CreateTaskRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(taskService.createTask(request));
     }
 
     //testat, merge
     @PatchMapping("/{taskId}")
+    @PreAuthorize("@checkPermissions.hasPermission('TASK','UPDATE')")
     public ResponseEntity<TaskResponse> updateTask(@PathVariable Long taskId, @Valid @RequestBody UpdateTaskRequest request) {
         return ResponseEntity.ok(taskService.updateTask(taskId, request));
     }
 
     //testat, merge
     @DeleteMapping("/{taskId}")
+    @PreAuthorize("@checkPermissions.hasPermission('TASK','DELETE')")
     public ResponseEntity<Void> deleteTask(@PathVariable Long taskId) {
         taskService.deleteTask(taskId);
         return ResponseEntity.noContent().build();

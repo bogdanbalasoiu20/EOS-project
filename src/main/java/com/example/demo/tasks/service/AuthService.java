@@ -1,5 +1,7 @@
 package com.example.demo.tasks.service;
 
+import com.example.demo.tasks.domain.enums.RoleName;
+import com.example.demo.tasks.domain.model.Role;
 import com.example.demo.tasks.domain.model.User;
 import com.example.demo.tasks.dto.mapper.UserMapper;
 import com.example.demo.tasks.dto.request.Auth.LoginRequest;
@@ -8,6 +10,7 @@ import com.example.demo.tasks.dto.response.Auth.LoginResponse;
 import com.example.demo.tasks.dto.response.User.UserResponse;
 import com.example.demo.tasks.exception.UnauthorizedException;
 import com.example.demo.tasks.exception.UserAlreadyExistsException;
+import com.example.demo.tasks.repository.RoleRepository;
 import com.example.demo.tasks.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +32,7 @@ import java.util.Base64;
 public class AuthService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final RoleRepository roleRepository;
 
     @Value("${jwt.secret: }") String jwtSecret;
     @Value("${jwt.expiration.ms: }") String jwtExpiration;
@@ -58,6 +62,7 @@ public class AuthService {
                 user.getUsername(),
                 user.getEmail(),
                 token,
+                user.getRole().getRoleName().name(),
                 "Login successful"
         );
     }
@@ -67,12 +72,12 @@ public class AuthService {
         String email = new String(Base64.getDecoder().decode(request.email()));
         String password = new String(Base64.getDecoder().decode(request.password()));
 
-        if(userRepository.existsByUsername(request.username())){
-            throw new UserAlreadyExistsException("username", request.username());
+        if(userRepository.existsByUsername(username)){
+            throw new UserAlreadyExistsException("username", username);
         }
 
-        if(userRepository.existsByEmail(request.email())){
-            throw new UserAlreadyExistsException("email",request.email());
+        if(userRepository.existsByEmail(email)){
+            throw new UserAlreadyExistsException("email",email);
         }
 
         User user = userMapper.toEntity(request);
@@ -83,6 +88,10 @@ public class AuthService {
                 .replaceFirst("MD5:", "")
                 .trim()
                 .toLowerCase());
+
+        Role role = roleRepository.findByRoleName(RoleName.USER).orElseThrow(() -> new RuntimeException("Role USER not found"));
+
+        user.setRole(role);
 
         return userMapper.toResponse(userRepository.save(user));
 

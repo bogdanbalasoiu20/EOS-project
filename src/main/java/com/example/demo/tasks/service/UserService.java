@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -94,6 +95,10 @@ public class UserService {
         long count = taskRepository.countByUserUserId(userId);
 
         return new UserTaskCountResponse(userId, count);
+    }
+
+    public Optional<User> getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 
     private User findUser(Long id) {

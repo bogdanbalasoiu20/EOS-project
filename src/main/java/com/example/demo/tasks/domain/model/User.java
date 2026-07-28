@@ -19,6 +19,10 @@ public class User {
     @Column(name = "USER_ID")
     private Long userId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ROLE_ID", nullable = false)
+    private Role role;
+
     @Column(name = "USERNAME", nullable = false)
     private String username;
 
