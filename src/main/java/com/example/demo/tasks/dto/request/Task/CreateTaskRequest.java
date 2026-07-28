@@ -18,9 +18,6 @@ public record CreateTaskRequest(
 
         @NotNull(message = "Due date is required")
         @Future(message = "Due date must be in the future")
-        LocalDateTime dueDate,
-
-        @NotBlank(message = "Created by is required")
-        String createdBy
+        LocalDateTime dueDate
 
 ) {}

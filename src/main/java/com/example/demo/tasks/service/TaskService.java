@@ -12,6 +12,7 @@ import com.example.demo.tasks.exception.*;
 import com.example.demo.tasks.repository.StatusTypeRepository;
 import com.example.demo.tasks.repository.TaskRepository;
 import com.example.demo.tasks.repository.UserRepository;
+import com.example.demo.utils.LoggedInUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ public class TaskService {
     private final UserRepository userRepository;
     private final StatusTypeRepository statusTypeRepository;
     private final TaskMapper taskMapper;
+    private final LoggedInUser loggedInUser;
 
     public List<TaskResponse> getTasks(String status, String keyword, Long userId, Boolean unassigned, LocalDate dueDate) {
         log.info("Retrieving tasks with status={}, keyword={}, userId={}, dueDate={}", status, keyword, userId, dueDate);
@@ -76,6 +78,11 @@ public class TaskService {
         if (request.userId() != null) {
             task.setUser(findUser(request.userId()));
         }
+
+        User user = loggedInUser.get();
+
+        task.setCreatedBy(user.getUsername());
+        task.setLastUpdatedBy(user.getUsername());
 
         Task savedTask = taskRepository.save(task);
         log.info("Created task with id {}", savedTask.getTaskId());

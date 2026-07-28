@@ -11,8 +11,6 @@ public class TaskMapper {
         return Task.builder()
                 .taskName(request.taskName())
                 .dueDate(request.dueDate())
-                .createdBy(request.createdBy())
-                .lastUpdatedBy(request.createdBy())
                 .build();
     }
 
