@@ -1,5 +1,6 @@
 package com.example.demo.tasks.service;
 
+import com.example.demo.tasks.domain.enums.RoleName;
 import com.example.demo.tasks.domain.model.StatusType;
 import com.example.demo.tasks.domain.model.Task;
 import com.example.demo.tasks.domain.model.User;
@@ -41,7 +42,13 @@ public class TaskService {
     public List<TaskResponse> getTasks(String status, String keyword, Long userId, Boolean unassigned, LocalDate dueDate) {
         log.info("Retrieving tasks with status={}, keyword={}, userId={}, dueDate={}", status, keyword, userId, dueDate);
 
+        User loggedUser = loggedInUser.get();
+
         Stream<Task> tasks = taskRepository.findAll().stream();
+
+        if (loggedUser.getRole().getRoleName() != RoleName.ADMIN) {
+            tasks = tasks.filter(task -> task.getUser() != null && task.getUser().getUserId().equals(loggedUser.getUserId()));
+        }
 
         if (status != null && !status.isBlank()) {
             tasks = tasks.filter(task -> task.getStatusType().getStatusName().equalsIgnoreCase(status));
@@ -52,11 +59,11 @@ public class TaskService {
             tasks = tasks.filter(task -> task.getTaskName().toLowerCase().contains(search));
         }
 
-        if (userId != null) {
+        if (loggedUser.getRole().getRoleName() == RoleName.ADMIN && userId != null) {
             tasks = tasks.filter(task -> task.getUser() != null && task.getUser().getUserId().equals(userId));
         }
 
-        if (Boolean.TRUE.equals(unassigned)) {
+        if (loggedUser.getRole().getRoleName() == RoleName.ADMIN && Boolean.TRUE.equals(unassigned)) {
             tasks = tasks.filter(task -> task.getUser() == null);
         }
 
