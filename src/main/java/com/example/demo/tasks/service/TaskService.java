@@ -1,6 +1,7 @@
 package com.example.demo.tasks.service;
 
 import com.example.demo.tasks.domain.enums.RoleName;
+import com.example.demo.tasks.domain.enums.TaskPeriod;
 import com.example.demo.tasks.domain.model.StatusType;
 import com.example.demo.tasks.domain.model.Task;
 import com.example.demo.tasks.domain.model.User;
@@ -27,6 +28,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.example.demo.tasks.domain.enums.TaskPeriod.*;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -39,15 +42,26 @@ public class TaskService {
     private final TaskMapper taskMapper;
     private final LoggedInUser loggedInUser;
 
-    public List<TaskResponse> getTasks(String status, String keyword, Long userId, Boolean unassigned, LocalDate dueDate) {
-        log.info("Retrieving tasks with status={}, keyword={}, userId={}, dueDate={}", status, keyword, userId, dueDate);
+    public List<TaskResponse> getTasks(
+            String status,
+            String keyword,
+            Long userId,
+            Boolean unassigned,
+            LocalDate dueDate,
+            TaskPeriod period,
+            LocalDate start,
+            LocalDate end) {
+
+        log.info("Retrieving tasks with status={}, keyword={}, userId={}, dueDate={}, period={}, start={}, end={}", status, keyword, userId, dueDate, period, start, end);
 
         User loggedUser = loggedInUser.get();
 
         Stream<Task> tasks = taskRepository.findAll().stream();
 
+        // USER vede doar task-urile lui
         if (loggedUser.getRole().getRoleName() != RoleName.ADMIN) {
-            tasks = tasks.filter(task -> task.getUser() != null && task.getUser().getUserId().equals(loggedUser.getUserId()));
+            tasks = tasks.filter(task ->
+                    task.getUser() != null && task.getUser().getUserId().equals(loggedUser.getUserId()));
         }
 
         if (status != null && !status.isBlank()) {
@@ -56,6 +70,7 @@ public class TaskService {
 
         if (keyword != null && !keyword.isBlank()) {
             String search = keyword.toLowerCase();
+
             tasks = tasks.filter(task -> task.getTaskName().toLowerCase().contains(search));
         }
 
@@ -69,6 +84,32 @@ public class TaskService {
 
         if (dueDate != null) {
             tasks = tasks.filter(task -> task.getDueDate() != null && task.getDueDate().toLocalDate().equals(dueDate));
+        }
+
+        if (period != null) {
+            switch (period) {
+                case TODAY -> {
+                    LocalDate today = LocalDate.now();
+
+                    tasks = tasks.filter(task -> task.getDueDate() != null && task.getDueDate().toLocalDate().equals(today));
+                }
+
+                case THIS_WEEK -> {
+                    LocalDate monday = LocalDate.now().with(DayOfWeek.MONDAY);
+                    LocalDate sunday = LocalDate.now().with(DayOfWeek.SUNDAY);
+
+                    tasks = tasks.filter(task -> task.getDueDate() != null && !task.getDueDate().toLocalDate().isBefore(monday) && !task.getDueDate().toLocalDate().isAfter(sunday));
+                }
+
+                case OVERDUE -> {
+                    tasks = tasks.filter(task ->
+                            task.getDueDate() != null && task.getDueDate().isBefore(LocalDateTime.now()) && !COMPLETED_STATUS.equalsIgnoreCase(task.getStatusType().getStatusName()));
+                }
+            }
+        }
+
+        if (start != null && end != null) {
+            tasks = tasks.filter(task -> task.getDueDate() != null && !task.getDueDate().toLocalDate().isBefore(start) && !task.getDueDate().toLocalDate().isAfter(end));
         }
 
         return tasks.sorted(Comparator.comparing(Task::getDueDate).reversed())

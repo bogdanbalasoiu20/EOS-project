@@ -1,5 +1,6 @@
 package com.example.demo.tasks.controller;
 
+import com.example.demo.tasks.domain.enums.TaskPeriod;
 import com.example.demo.tasks.dto.request.Task.AssignTaskRequest;
 import com.example.demo.tasks.dto.request.Task.CreateTaskRequest;
 import com.example.demo.tasks.dto.request.Task.UpdateTaskRequest;
@@ -14,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -31,9 +33,12 @@ public class TaskController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) Boolean unassigned,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate,
+            @RequestParam(required = false) TaskPeriod period,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
 
-        return ResponseEntity.ok(taskService.getTasks(status, keyword, userId, unassigned, dueDate));
+        return ResponseEntity.ok(taskService.getTasks(status, keyword, userId, unassigned, dueDate, period, start, end));
     }
 
     //testat, merge
