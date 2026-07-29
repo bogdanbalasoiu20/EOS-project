@@ -34,22 +34,19 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final LoggedInUser loggedInUser;
 
-    public List<UserResponse> getUsers(String username, Integer internal) {
-        log.info("Retrieving users with username={} and internal={}", username, internal);
-
+    public List<UserResponse> getUsers(String keyword) {
+        log.info("Retrieving users with keyword={}", keyword);
         List<User> users;
 
-        if (username != null && internal != null) {
-            users = userRepository.findByUsernameContainingIgnoreCaseAndInternal(username, internal);
-        } else if (username != null) {
-            users = userRepository.findByUsernameContainingIgnoreCase(username);
-        } else if (internal != null) {
-            users = userRepository.findByInternal(internal);
+        if (keyword != null && !keyword.isBlank()) {
+            users = userRepository.findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(keyword,keyword);
         } else {
             users = userRepository.findAll();
         }
 
-        return users.stream().map(userMapper::toResponse).toList();
+        return users.stream()
+                .map(userMapper::toResponse)
+                .toList();
     }
 
     public UserResponse getUserById(Long id) {

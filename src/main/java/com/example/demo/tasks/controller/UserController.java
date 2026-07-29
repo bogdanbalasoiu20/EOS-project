@@ -28,8 +28,8 @@ public class UserController {
     //testat, merge
     @GetMapping
     @PreAuthorize("@checkPermissions.hasPermission('USER','READ')")
-    public ResponseEntity<List<UserResponse>> getUsers(@RequestParam(required = false) String username, @RequestParam(required = false) Integer internal) {
-        return ResponseEntity.ok(userService.getUsers(username, internal));
+    public ResponseEntity<List<UserResponse>> getUsers(@RequestParam(required = false) String keyword) {
+        return ResponseEntity.ok(userService.getUsers(keyword));
     }
 
     //testat, merge

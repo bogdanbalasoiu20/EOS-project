@@ -11,9 +11,6 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsername(String username);
-    List<User> findByUsernameContainingIgnoreCase(String username);
-    List<User> findByInternal(Integer internal);
-    List<User> findByUsernameContainingIgnoreCaseAndInternal(String username, Integer internal);
     @Query("""
         SELECT u
         FROM User u
@@ -26,4 +23,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findUsersWithoutTasks();
     Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
+    List<User> findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(String username, String email);
 }
