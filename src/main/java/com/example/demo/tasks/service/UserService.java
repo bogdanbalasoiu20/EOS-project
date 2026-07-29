@@ -1,17 +1,21 @@
 package com.example.demo.tasks.service;
 
+import com.example.demo.tasks.domain.model.Role;
 import com.example.demo.tasks.domain.model.User;
 import com.example.demo.tasks.dto.mapper.TaskMapper;
 import com.example.demo.tasks.dto.mapper.UserMapper;
-import com.example.demo.tasks.dto.request.User.CreateUserRequest;
+import com.example.demo.tasks.dto.request.User.UpdateRoleRequest;
 import com.example.demo.tasks.dto.request.User.UpdateUserRequest;
 import com.example.demo.tasks.dto.response.Task.TaskResponse;
 import com.example.demo.tasks.dto.response.User.UserResponse;
 import com.example.demo.tasks.dto.response.User.UserTaskCountResponse;
-import com.example.demo.tasks.exception.UserAlreadyExistsException;
+import com.example.demo.tasks.exception.BadRequestException;
+import com.example.demo.tasks.exception.RoleNotFoundException;
 import com.example.demo.tasks.exception.UserNotFoundException;
+import com.example.demo.tasks.repository.RoleRepository;
 import com.example.demo.tasks.repository.TaskRepository;
 import com.example.demo.tasks.repository.UserRepository;
+import com.example.demo.utils.LoggedInUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +31,8 @@ public class UserService {
     private final UserMapper userMapper;
     private final TaskRepository taskRepository;
     private final TaskMapper taskMapper;
+    private final RoleRepository roleRepository;
+    private final LoggedInUser loggedInUser;
 
     public List<UserResponse> getUsers(String username, Integer internal) {
         log.info("Retrieving users with username={} and internal={}", username, internal);
@@ -65,6 +71,23 @@ public class UserService {
         if (request.internal() != null) {
             user.setInternal(request.internal());
         }
+
+        return userMapper.toResponse(userRepository.save(user));
+    }
+
+
+    public UserResponse updateRole(Long userId, UpdateRoleRequest request) {
+        User loggedUser = loggedInUser.get();
+
+        if (loggedUser.getUserId().equals(userId)) {
+            throw new BadRequestException("You cannot change your own role.");
+        }
+
+        User user = findUser(userId);
+
+        Role role = roleRepository.findByRoleName(request.role()).orElseThrow(() -> new RoleNotFoundException(request.role()));
+
+        user.setRole(role);
 
         return userMapper.toResponse(userRepository.save(user));
     }

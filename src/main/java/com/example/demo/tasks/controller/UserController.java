@@ -1,6 +1,7 @@
 package com.example.demo.tasks.controller;
 
 import com.example.demo.tasks.dto.request.User.CreateUserRequest;
+import com.example.demo.tasks.dto.request.User.UpdateRoleRequest;
 import com.example.demo.tasks.dto.request.User.UpdateUserRequest;
 import com.example.demo.tasks.dto.response.Task.TaskResponse;
 import com.example.demo.tasks.dto.response.User.UserResponse;
@@ -11,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -25,6 +27,7 @@ public class UserController {
 
     //testat, merge
     @GetMapping
+    @PreAuthorize("@checkPermissions.hasPermission('USER','READ')")
     public ResponseEntity<List<UserResponse>> getUsers(@RequestParam(required = false) String username, @RequestParam(required = false) Integer internal) {
         return ResponseEntity.ok(userService.getUsers(username, internal));
     }
@@ -88,5 +91,11 @@ public class UserController {
     @GetMapping("/{userId}/tasks/date-range")
     public ResponseEntity<List<TaskResponse>> getTasksBetween(@PathVariable Long userId, @RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
         return ResponseEntity.ok(taskService.getTasksBetween(userId, start, end));
+    }
+
+    @PatchMapping("/{userId}/role")
+    @PreAuthorize("@checkPermissions.hasPermission('USER', 'UPDATE')")
+    public ResponseEntity<UserResponse> updateRole(@PathVariable Long userId, @RequestBody @Valid UpdateRoleRequest request) {
+        return ResponseEntity.ok(userService.updateRole(userId, request));
     }
 }
