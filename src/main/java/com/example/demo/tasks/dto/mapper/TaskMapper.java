@@ -17,10 +17,17 @@ public class TaskMapper {
     public TaskResponse toResponse(Task task) {
         Long userId = null;
         String username = null;
+        Long teamId = null;
+        String teamName = null;
 
         if (task.getUser() != null) {
             userId = task.getUser().getUserId();
             username = task.getUser().getUsername();
+        }
+
+        if(task.getTeam() != null) {
+            teamId = task.getTeam().getTeamId();
+            teamName = task.getTeam().getTeamName();
         }
 
         return new TaskResponse(
@@ -30,6 +37,8 @@ public class TaskMapper {
                 task.getStatusType().getStatusName(),
                 userId,
                 username,
+                teamId,
+                teamName,
                 task.getDueDate(),
                 task.getCreatedBy(),
                 task.getCreationDate(),

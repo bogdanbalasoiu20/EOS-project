@@ -16,6 +16,9 @@ public record CreateTaskRequest(
         //@NotNull(message = "User is required")
         Long userId,
 
+        @NotNull(message = "Team is required")
+        Long teamId,
+
         @NotNull(message = "Due date is required")
         @Future(message = "Due date must be in the future")
         LocalDateTime dueDate

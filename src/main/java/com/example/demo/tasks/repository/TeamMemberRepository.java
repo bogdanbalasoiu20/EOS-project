@@ -9,4 +9,5 @@ import java.util.List;
 public interface TeamMemberRepository extends JpaRepository<TeamMember, TeamMemberId> {
     boolean existsByTeamTeamIdAndUserUserId(Long teamId, Long userId);
     List<TeamMember> findByTeamTeamId(Long teamId);
+    boolean existsByTeamTeamId(Long teamId);
 }

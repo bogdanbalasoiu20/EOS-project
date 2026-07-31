@@ -185,4 +185,27 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+
+    @ExceptionHandler(UserNotInTeamException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotInTeamException(UserNotInTeamException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(
+                        LocalDateTime.now(),
+                        HttpStatus.CONFLICT.value(),
+                        ex.getMessage(),
+                        null
+                ));
+    }
+
+    @ExceptionHandler(IllegalOperationException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalOperationException(IllegalOperationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(
+                        LocalDateTime.now(),
+                        HttpStatus.CONFLICT.value(),
+                        ex.getMessage(),
+                        null
+                ));
+    }
+
 }

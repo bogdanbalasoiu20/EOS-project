@@ -29,6 +29,10 @@ public class Task {
     @JoinColumn(name = "USER_ID")
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id")
+    private Team team;
+
     @Column(name = "DUE_DATE")
     private LocalDateTime dueDate;
 

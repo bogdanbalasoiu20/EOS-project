@@ -10,6 +10,8 @@ public record TaskResponse(
         String statusName,
         Long userId,
         String username,
+        Long teamId,
+        String teamName,
         LocalDateTime dueDate,
         String createdBy,
         LocalDateTime creationDate,

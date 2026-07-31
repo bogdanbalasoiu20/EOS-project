@@ -4,6 +4,7 @@ import com.example.demo.tasks.domain.enums.RoleName;
 import com.example.demo.tasks.domain.enums.TaskPeriod;
 import com.example.demo.tasks.domain.model.StatusType;
 import com.example.demo.tasks.domain.model.Task;
+import com.example.demo.tasks.domain.model.Team;
 import com.example.demo.tasks.domain.model.User;
 import com.example.demo.tasks.dto.mapper.TaskMapper;
 import com.example.demo.tasks.dto.request.Task.AssignTaskRequest;
@@ -11,9 +12,7 @@ import com.example.demo.tasks.dto.request.Task.CreateTaskRequest;
 import com.example.demo.tasks.dto.request.Task.UpdateTaskRequest;
 import com.example.demo.tasks.dto.response.Task.TaskResponse;
 import com.example.demo.tasks.exception.*;
-import com.example.demo.tasks.repository.StatusTypeRepository;
-import com.example.demo.tasks.repository.TaskRepository;
-import com.example.demo.tasks.repository.UserRepository;
+import com.example.demo.tasks.repository.*;
 import com.example.demo.utils.LoggedInUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +40,8 @@ public class TaskService {
     private final StatusTypeRepository statusTypeRepository;
     private final TaskMapper taskMapper;
     private final LoggedInUser loggedInUser;
+    private final TeamRepository teamRepository;
+    private final TeamMemberRepository teamMemberRepository;
 
     public List<TaskResponse> getTasks(
             String status,
@@ -123,6 +124,21 @@ public class TaskService {
         Task task = taskMapper.toEntity(request);
         task.setStatusType(statusType);
 
+        if (request.teamId() != null) {
+            Team team = findTeam(request.teamId());
+            task.setTeam(team);
+
+            User loggedUser = loggedInUser.get();
+
+            if (loggedUser.getRole().getRoleName() != RoleName.ADMIN && (team.getTeamLeader() == null || !team.getTeamLeader().getUserId().equals(loggedUser.getUserId()))) {
+                throw new UnauthorizedException("Only the team leader can create tasks for this team.");
+            }
+
+            if (request.userId() != null && !teamMemberRepository.existsByTeamTeamIdAndUserUserId(request.teamId(),request.userId())) {
+                throw new UserNotInTeamException(request.userId(),request.teamId());
+            }
+        }
+
         if (request.userId() != null) {
             task.setUser(findUser(request.userId()));
         }
@@ -146,6 +162,13 @@ public class TaskService {
     @Transactional
     public TaskResponse updateTask(Long taskId, UpdateTaskRequest request) {
         Task task = findTask(taskId);
+        Team team = task.getTeam();
+
+        User loggedUser = loggedInUser.get();
+
+        if (loggedUser.getRole().getRoleName() != RoleName.ADMIN && (team.getTeamLeader() == null || !team.getTeamLeader().getUserId().equals(loggedUser.getUserId()))) {
+            throw new UnauthorizedException("Only the team leader can update tasks for this team.");
+        }
 
         if (request.taskName() != null) {
             task.setTaskName(request.taskName());
@@ -156,7 +179,13 @@ public class TaskService {
         }
 
         if (request.userId() != null) {
-            task.setUser(findUser(request.userId()));
+            User assignedUser = findUser(request.userId());
+
+            if (!teamMemberRepository.existsByTeamTeamIdAndUserUserId(team.getTeamId(), assignedUser.getUserId())) {
+                throw new UserNotInTeamException(assignedUser.getUserId(), team.getTeamId());
+            }
+
+            task.setUser(assignedUser);
         }
 
         if (request.statusTypeId() != null) {
@@ -164,6 +193,7 @@ public class TaskService {
         }
 
         Task updatedTask = taskRepository.save(task);
+
         log.info("Updated task {}", taskId);
 
         return taskMapper.toResponse(updatedTask);
@@ -275,5 +305,9 @@ public class TaskService {
 
     private StatusType findStatus(String id) {
         return statusTypeRepository.findById(id).orElseThrow(() -> new StatusTypeNotFoundException(id));
+    }
+
+    private Team findTeam(Long id) {
+        return teamRepository.findById(id).orElseThrow(() -> new TeamNotFoundException(id));
     }
 }
