@@ -1,6 +1,7 @@
 package com.example.demo.tasks.service;
 
 import com.example.demo.tasks.domain.model.Role;
+import com.example.demo.tasks.domain.model.Team;
 import com.example.demo.tasks.domain.model.User;
 import com.example.demo.tasks.dto.mapper.TaskMapper;
 import com.example.demo.tasks.dto.mapper.UserMapper;
@@ -11,10 +12,9 @@ import com.example.demo.tasks.dto.response.User.UserResponse;
 import com.example.demo.tasks.dto.response.User.UserTaskCountResponse;
 import com.example.demo.tasks.exception.BadRequestException;
 import com.example.demo.tasks.exception.RoleNotFoundException;
+import com.example.demo.tasks.exception.TeamNotFoundException;
 import com.example.demo.tasks.exception.UserNotFoundException;
-import com.example.demo.tasks.repository.RoleRepository;
-import com.example.demo.tasks.repository.TaskRepository;
-import com.example.demo.tasks.repository.UserRepository;
+import com.example.demo.tasks.repository.*;
 import com.example.demo.utils.LoggedInUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +33,8 @@ public class UserService {
     private final TaskMapper taskMapper;
     private final RoleRepository roleRepository;
     private final LoggedInUser loggedInUser;
+    private final TeamRepository teamRepository;
+    private final TeamMemberRepository teamMemberRepository;
 
     public List<UserResponse> getUsers(String keyword) {
         log.info("Retrieving users with keyword={}", keyword);
@@ -119,6 +121,21 @@ public class UserService {
 
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    public List<UserResponse> getUsersNotInTeam(Long teamId) {
+        Team team = teamRepository.findById(teamId).orElseThrow(() -> new TeamNotFoundException(teamId));
+
+        List<Long> memberIds = teamMemberRepository.findByTeamTeamId(teamId)
+                .stream()
+                .map(member -> member.getUser().getUserId())
+                .toList();
+
+        return userRepository.findAll()
+                .stream()
+                .filter(user -> !memberIds.contains(user.getUserId()))
+                .map(userMapper::toResponse)
+                .toList();
     }
 
     private User findUser(Long id) {

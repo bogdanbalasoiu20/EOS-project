@@ -42,4 +42,14 @@ public class TeamController {
         teamService.deleteTeam(teamId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/my/leading")
+    public ResponseEntity<List<TeamResponse>> getLeadingTeams() {
+        return ResponseEntity.ok(teamService.getLeadingTeams());
+    }
+
+    @GetMapping("/my/member")
+    public ResponseEntity<List<TeamResponse>> getMemberTeams() {
+        return ResponseEntity.ok(teamService.getMemberTeams());
+    }
 }

@@ -108,4 +108,24 @@ public class TeamService {
 
         teamRepository.delete(team);
     }
+
+    public List<TeamResponse> getLeadingTeams() {
+        User loggedUser = loggedInUser.get();
+
+        return teamRepository.findByTeamLeaderUserId(loggedUser.getUserId())
+                .stream()
+                .map(teamMapper::toResponse)
+                .toList();
+    }
+
+    public List<TeamResponse> getMemberTeams() {
+        User loggedUser = loggedInUser.get();
+
+        return teamMemberRepository.findByUserUserId(loggedUser.getUserId())
+                .stream()
+                .map(TeamMember::getTeam)
+                .filter(team -> !team.getTeamLeader().getUserId().equals(loggedUser.getUserId()))
+                .map(teamMapper::toResponse)
+                .toList();
+    }
 }

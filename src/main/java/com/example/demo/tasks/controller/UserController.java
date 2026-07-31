@@ -98,4 +98,9 @@ public class UserController {
     public ResponseEntity<UserResponse> updateRole(@PathVariable Long userId, @RequestBody @Valid UpdateRoleRequest request) {
         return ResponseEntity.ok(userService.updateRole(userId, request));
     }
+
+    @GetMapping("/not-in-team/{teamId}")
+    public ResponseEntity<List<UserResponse>> getUsersNotInTeam(@PathVariable Long teamId) {
+        return ResponseEntity.ok(userService.getUsersNotInTeam(teamId));
+    }
 }
