@@ -163,4 +163,26 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    @ExceptionHandler(TeamMemberAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleTeamMemberAlreadyExistsException(TeamMemberAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(
+                        LocalDateTime.now(),
+                        HttpStatus.CONFLICT.value(),
+                        ex.getMessage(),
+                        null
+                ));
+    }
+
+    @ExceptionHandler(TeamMemberNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleTeamMemberNotFoundException(TeamMemberNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(
+                        LocalDateTime.now(),
+                        HttpStatus.NOT_FOUND.value(),
+                        ex.getMessage(),
+                        null
+                ));
+    }
+
 }
