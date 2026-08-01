@@ -50,21 +50,21 @@ public class TaskController {
 
     //testat, merge
     @PostMapping
-    @PreAuthorize("@checkPermissions.hasPermission('TASK','CREATE')")
+    //@PreAuthorize("@checkPermissions.hasPermission('TASK','CREATE')")
     public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody CreateTaskRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(taskService.createTask(request));
     }
 
     //testat, merge
     @PatchMapping("/{taskId}")
-    @PreAuthorize("@checkPermissions.hasPermission('TASK','UPDATE')")
+    //@PreAuthorize("@checkPermissions.hasPermission('TASK','UPDATE')")
     public ResponseEntity<TaskResponse> updateTask(@PathVariable Long taskId, @Valid @RequestBody UpdateTaskRequest request) {
         return ResponseEntity.ok(taskService.updateTask(taskId, request));
     }
 
     //testat, merge
     @DeleteMapping("/{taskId}")
-    @PreAuthorize("@checkPermissions.hasPermission('TASK','DELETE')")
+    //@PreAuthorize("@checkPermissions.hasPermission('TASK','DELETE')")
     public ResponseEntity<Void> deleteTask(@PathVariable Long taskId) {
         taskService.deleteTask(taskId);
         return ResponseEntity.noContent().build();
@@ -86,6 +86,12 @@ public class TaskController {
     @GetMapping("/unassigned")
     public ResponseEntity<List<TaskResponse>> getUnassignedTasks() {
         return ResponseEntity.ok(taskService.getUnassignedTasks());
+    }
+
+    @GetMapping("/{teamId}/members/{userId}/tasks")
+    public ResponseEntity<List<TaskResponse>> getMemberTasks(@PathVariable Long teamId, @PathVariable Long userId) {
+        System.out.println("CONTROLLER GET MEMBER TASKS");
+        return ResponseEntity.ok(taskService.getTasksByTeamAndUser(teamId, userId));
     }
 
 }

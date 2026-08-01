@@ -27,7 +27,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.example.demo.tasks.domain.enums.TaskPeriod.*;
 
 @Service
 @Slf4j
@@ -61,8 +60,7 @@ public class TaskService {
 
         // USER vede doar task-urile lui
         if (loggedUser.getRole().getRoleName() != RoleName.ADMIN) {
-            tasks = tasks.filter(task ->
-                    task.getUser() != null && task.getUser().getUserId().equals(loggedUser.getUserId()));
+            tasks = tasks.filter(task -> task.getUser() != null && task.getUser().getUserId().equals(loggedUser.getUserId()));
         }
 
         if (status != null && !status.isBlank()) {
@@ -130,9 +128,7 @@ public class TaskService {
 
             User loggedUser = loggedInUser.get();
 
-            if (loggedUser.getRole().getRoleName() != RoleName.ADMIN && (team.getTeamLeader() == null || !team.getTeamLeader().getUserId().equals(loggedUser.getUserId()))) {
-                throw new UnauthorizedException("Only the team leader can create tasks for this team.");
-            }
+            checkCanManageTeamTasks(loggedUser, team);
 
             if (request.userId() != null && !teamMemberRepository.existsByTeamTeamIdAndUserUserId(request.teamId(),request.userId())) {
                 throw new UserNotInTeamException(request.userId(),request.teamId());
@@ -166,9 +162,7 @@ public class TaskService {
 
         User loggedUser = loggedInUser.get();
 
-        if (loggedUser.getRole().getRoleName() != RoleName.ADMIN && (team.getTeamLeader() == null || !team.getTeamLeader().getUserId().equals(loggedUser.getUserId()))) {
-            throw new UnauthorizedException("Only the team leader can update tasks for this team.");
-        }
+        checkCanManageTeamTasks(loggedUser, team);
 
         if (request.taskName() != null) {
             task.setTaskName(request.taskName());
@@ -192,6 +186,7 @@ public class TaskService {
             task.setStatusType(findStatus(request.statusTypeId()));
         }
 
+        task.setLastUpdatedBy(loggedUser.getUsername());
         Task updatedTask = taskRepository.save(task);
 
         log.info("Updated task {}", taskId);
@@ -202,8 +197,43 @@ public class TaskService {
     @Transactional
     public void deleteTask(Long taskId) {
         Task task = findTask(taskId);
+        Team team = task.getTeam();
+        User loggedUser = loggedInUser.get();
+
+        checkCanManageTeamTasks(loggedUser, team);
+
         taskRepository.delete(task);
+
         log.info("Deleted task {}", taskId);
+    }
+
+    public List<TaskResponse> getTasksByTeamAndUser(Long teamId, Long userId) {
+        User loggedUser = loggedInUser.get();
+
+        boolean isAdmin = loggedUser.getRole().getRoleName() == RoleName.ADMIN;
+        boolean isTeamMember = teamMemberRepository.existsByTeamTeamIdAndUserUserId(teamId, loggedUser.getUserId());
+
+        System.out.println("teamId = " + teamId);
+        System.out.println("requested userId = " + userId);
+        System.out.println("logged userId = " + loggedUser.getUserId());
+        System.out.println("logged username = " + loggedUser.getUsername());
+        System.out.println("isAdmin = " + isAdmin);
+        System.out.println("isTeamMember = " + isTeamMember);
+
+        if (!isAdmin && !isTeamMember) {
+            throw new UnauthorizedException("You must be a member of this team to view its tasks.");
+        }
+
+        // verific si ca userul ale carui taskuri le cer apartine echipei
+        if (!teamMemberRepository.existsByTeamTeamIdAndUserUserId(teamId, userId)) {
+            throw new UserNotInTeamException(userId, teamId);
+        }
+
+        return taskRepository
+                .findByTeamTeamIdAndUserUserId(teamId, userId)
+                .stream()
+                .map(taskMapper::toResponse)
+                .toList();
     }
 
     @Transactional
@@ -309,5 +339,14 @@ public class TaskService {
 
     private Team findTeam(Long id) {
         return teamRepository.findById(id).orElseThrow(() -> new TeamNotFoundException(id));
+    }
+
+    private void checkCanManageTeamTasks(User user, Team team) {
+        boolean isAdmin = user.getRole().getRoleName() == RoleName.ADMIN;
+        boolean isTeamLeader = team.getTeamLeader() != null && team.getTeamLeader().getUserId().equals(user.getUserId());
+
+        if (!isAdmin && !isTeamLeader) {
+            throw new UnauthorizedException("Only the team leader or an admin can manage tasks for this team.");
+        }
     }
 }

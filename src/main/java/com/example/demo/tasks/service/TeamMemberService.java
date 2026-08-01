@@ -66,6 +66,21 @@ public class TeamMemberService {
     }
 
     public void removeMember(Long teamId, Long userId) {
+        Team team = teamRepository.findById(teamId).orElseThrow(() -> new TeamNotFoundException(teamId));
+        User loggedUser = loggedInUser.get();
+
+        boolean isAdmin = loggedUser.getRole().getRoleName() == RoleName.ADMIN;
+        boolean isTeamLeader = team.getTeamLeader() != null && team.getTeamLeader().getUserId().equals(loggedUser.getUserId());
+
+        if (!isAdmin && !isTeamLeader) {
+            throw new UnauthorizedException("Only the team leader or an admin can remove members from this team.");
+        }
+
+        // Team leader-ul nu poate fi eliminat din propria echipa
+        if (team.getTeamLeader() != null && team.getTeamLeader().getUserId().equals(userId)) {
+            throw new UnauthorizedException("The team leader cannot be removed from the team.");
+        }
+
         TeamMemberId id = new TeamMemberId(teamId, userId);
 
         TeamMember member = teamMemberRepository.findById(id).orElseThrow(() -> new TeamMemberNotFoundException(teamId, userId));
