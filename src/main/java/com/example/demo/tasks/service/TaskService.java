@@ -41,6 +41,7 @@ public class TaskService {
     private final LoggedInUser loggedInUser;
     private final TeamRepository teamRepository;
     private final TeamMemberRepository teamMemberRepository;
+    private final EmailService emailService;
 
     public List<TaskResponse> getTasks(
             String status,
@@ -146,6 +147,15 @@ public class TaskService {
 
         Task savedTask = taskRepository.save(task);
         log.info("Created task with id {}", savedTask.getTaskId());
+
+        try {
+            if (savedTask.getUser() != null) {
+                emailService.sendTaskAssignedEmail(savedTask.getUser().getEmail(), savedTask.getUser().getUsername(), savedTask.getTaskName());
+            }
+            log.info("Email sent to: " + savedTask.getUser().getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send task assignment email", e);
+        }
 
         return taskMapper.toResponse(savedTask);
     }
