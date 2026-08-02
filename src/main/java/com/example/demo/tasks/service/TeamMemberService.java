@@ -1,20 +1,19 @@
 package com.example.demo.tasks.service;
 
 import com.example.demo.tasks.domain.enums.RoleName;
-import com.example.demo.tasks.domain.model.Team;
-import com.example.demo.tasks.domain.model.TeamMember;
-import com.example.demo.tasks.domain.model.TeamMemberId;
-import com.example.demo.tasks.domain.model.User;
+import com.example.demo.tasks.domain.model.*;
 import com.example.demo.tasks.dto.mapper.TeamMemberMapper;
 import com.example.demo.tasks.dto.request.TeamMember.AddTeamMemberRequest;
 import com.example.demo.tasks.dto.response.TeamMember.TeamMemberResponse;
 import com.example.demo.tasks.exception.*;
+import com.example.demo.tasks.repository.TaskRepository;
 import com.example.demo.tasks.repository.TeamMemberRepository;
 import com.example.demo.tasks.repository.TeamRepository;
 import com.example.demo.tasks.repository.UserRepository;
 import com.example.demo.utils.LoggedInUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,6 +26,7 @@ public class TeamMemberService {
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
     private final LoggedInUser loggedInUser;
+    private final TaskRepository taskRepository;
 
 
     public TeamMemberResponse addMember(Long teamId, AddTeamMemberRequest request) {
@@ -65,6 +65,7 @@ public class TeamMemberService {
                 .toList();
     }
 
+    @Transactional
     public void removeMember(Long teamId, Long userId) {
         Team team = teamRepository.findById(teamId).orElseThrow(() -> new TeamNotFoundException(teamId));
         User loggedUser = loggedInUser.get();
@@ -84,6 +85,15 @@ public class TeamMemberService {
         TeamMemberId id = new TeamMemberId(teamId, userId);
 
         TeamMember member = teamMemberRepository.findById(id).orElseThrow(() -> new TeamMemberNotFoundException(teamId, userId));
+
+        List<Task> tasks = taskRepository.findByTeamTeamIdAndUserUserId(teamId, userId);
+
+        // taskurile sunt marcate ca unassigned cand sterg un membru din echipa
+        for (Task task : tasks) {
+            task.setUser(null);
+        }
+
+        taskRepository.saveAll(tasks);
 
         teamMemberRepository.delete(member);
     }

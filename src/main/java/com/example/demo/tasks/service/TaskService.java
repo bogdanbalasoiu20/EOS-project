@@ -10,6 +10,7 @@ import com.example.demo.tasks.dto.mapper.TaskMapper;
 import com.example.demo.tasks.dto.request.Task.AssignTaskRequest;
 import com.example.demo.tasks.dto.request.Task.CreateTaskRequest;
 import com.example.demo.tasks.dto.request.Task.UpdateTaskRequest;
+import com.example.demo.tasks.dto.request.Task.UpdateTaskStatusRequest;
 import com.example.demo.tasks.dto.response.Task.TaskResponse;
 import com.example.demo.tasks.exception.*;
 import com.example.demo.tasks.repository.*;
@@ -149,10 +150,11 @@ public class TaskService {
         log.info("Created task with id {}", savedTask.getTaskId());
 
         try {
-            if (savedTask.getUser() != null) {
+            if (savedTask.getUser() != null && savedTask.getUser().getEmail() != null) {
                 emailService.sendTaskAssignedEmail(savedTask.getUser().getEmail(), savedTask.getUser().getUsername(), savedTask.getTaskName());
+
+                log.info("Email sent to: {}", savedTask.getUser().getEmail());
             }
-            log.info("Email sent to: " + savedTask.getUser().getEmail());
         } catch (Exception e) {
             log.error("Failed to send task assignment email", e);
         }
@@ -329,6 +331,47 @@ public class TaskService {
         findUser(userId);
 
         return taskRepository.findByUserUserIdAndDueDateBetween(userId, start, end)
+                .stream()
+                .map(taskMapper::toResponse)
+                .toList();
+    }
+
+
+    @Transactional
+    public TaskResponse updateTaskStatus(Long taskId, UpdateTaskStatusRequest request) {
+        Task task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException(taskId));
+
+        User loggedUser = loggedInUser.get();
+
+        boolean isAdmin = loggedUser.getRole().getRoleName() == RoleName.ADMIN;
+        boolean isAssignedUser = task.getUser() != null && task.getUser().getUserId().equals(loggedUser.getUserId());
+
+        if (!isAdmin && !isAssignedUser) {
+            throw new UnauthorizedException("You can only update the status of tasks assigned to you.");
+        }
+
+        StatusType status = statusTypeRepository.findById(request.statusTypeId()).orElseThrow(() -> new StatusTypeNotFoundException(request.statusTypeId()));
+
+        task.setStatusType(status);
+
+        Task savedTask = taskRepository.save(task);
+
+        return taskMapper.toResponse(savedTask);
+    }
+
+
+    public List<TaskResponse> getUnassignedTasksByTeam(Long teamId) {
+        User loggedUser = loggedInUser.get();
+
+        boolean isAdmin = loggedUser.getRole().getRoleName() == RoleName.ADMIN;
+        boolean isTeamMember = teamMemberRepository.existsByTeamTeamIdAndUserUserId(teamId, loggedUser.getUserId());
+
+        if (!isAdmin && !isTeamMember) {
+            throw new UnauthorizedException("You must be a member of this team to view its tasks.");
+        }
+
+        return taskRepository
+                .findByTeamTeamIdAndUserIsNull(teamId)
                 .stream()
                 .map(taskMapper::toResponse)
                 .toList();

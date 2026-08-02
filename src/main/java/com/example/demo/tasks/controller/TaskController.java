@@ -4,6 +4,7 @@ import com.example.demo.tasks.domain.enums.TaskPeriod;
 import com.example.demo.tasks.dto.request.Task.AssignTaskRequest;
 import com.example.demo.tasks.dto.request.Task.CreateTaskRequest;
 import com.example.demo.tasks.dto.request.Task.UpdateTaskRequest;
+import com.example.demo.tasks.dto.request.Task.UpdateTaskStatusRequest;
 import com.example.demo.tasks.dto.response.Task.TaskResponse;
 import com.example.demo.tasks.service.TaskService;
 import jakarta.validation.Valid;
@@ -92,6 +93,16 @@ public class TaskController {
     public ResponseEntity<List<TaskResponse>> getMemberTasks(@PathVariable Long teamId, @PathVariable Long userId) {
         System.out.println("CONTROLLER GET MEMBER TASKS");
         return ResponseEntity.ok(taskService.getTasksByTeamAndUser(teamId, userId));
+    }
+
+    @PatchMapping("/{taskId}/status")
+    public ResponseEntity<TaskResponse> updateTaskStatus(@PathVariable Long taskId, @RequestBody UpdateTaskStatusRequest request) {
+        return ResponseEntity.ok(taskService.updateTaskStatus(taskId, request));
+    }
+
+    @GetMapping("/team/{teamId}/unassigned")
+    public ResponseEntity<List<TaskResponse>> getUnassignedTeamTasks(@PathVariable Long teamId) {
+        return ResponseEntity.ok(taskService.getUnassignedTasksByTeam(teamId));
     }
 
 }
