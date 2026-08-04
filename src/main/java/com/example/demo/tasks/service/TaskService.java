@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -117,9 +118,31 @@ public class TaskService {
             tasks = tasks.filter(task -> task.getDueDate() != null && !task.getDueDate().toLocalDate().isBefore(start) && !task.getDueDate().toLocalDate().isAfter(end));
         }
 
-        List<TaskResponse>filteredTasks= tasks.sorted(Comparator.comparing(Task::getDueDate).reversed())
-                .map(taskMapper::toResponse)
-                .toList();
+
+        //regaula de sortare default
+        Comparator<Task> comparator = Comparator.comparing(Task::getDueDate);
+
+        //am sortare implicita in paginare; nu am nevoie de un parametru in controller special pentru sortare, desi apare in request; Spring il mapeaza automat in pageable impreuna cu page si size
+        Sort.Order order = pageable.getSort().stream().findFirst().orElse(null); //din pageable iau prima sortare, daca exista
+
+        //setez comparatorul pentru a stabili regula de sortare
+        if (order != null) {
+            switch(order.getProperty()){ //order.getProperty() ia campul dupa care fac sortarea
+                case "taskName"->comparator=Comparator.comparing(Task::getTaskName,String.CASE_INSENSITIVE_ORDER);
+
+                case "user"->comparator=Comparator.comparing(task->task.getUser()!=null?task.getUser().getUsername():"", String.CASE_INSENSITIVE_ORDER);
+
+                default->comparator = Comparator.comparing(Task::getDueDate);
+            }
+        }
+
+        //order.getDirection() ia ordinea(asc sau desc); Comparator sorteaza crescator by default
+        if(order!=null&&order.getDirection()==Sort.Direction.DESC){
+            comparator=comparator.reversed();
+        }
+
+        //fac sortarea taskurilor in functie de comparatorul setat
+        List<TaskResponse> filteredTasks = tasks.sorted(comparator).map(taskMapper::toResponse).toList();
 
         int startIndex = (int)pageable.getOffset(); //getOffset = page*size
         int endIndex=Math.min(startIndex+pageable.getPageSize(),filteredTasks.size());  //calculez unde se termina pagina
