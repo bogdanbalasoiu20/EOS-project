@@ -17,6 +17,9 @@ import com.example.demo.tasks.repository.*;
 import com.example.demo.utils.LoggedInUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,7 +47,7 @@ public class TaskService {
     private final TeamMemberRepository teamMemberRepository;
     private final EmailService emailService;
 
-    public List<TaskResponse> getTasks(
+    public Page<TaskResponse> getTasks(
             String status,
             String keyword,
             Long userId,
@@ -52,7 +55,8 @@ public class TaskService {
             LocalDate dueDate,
             TaskPeriod period,
             LocalDate start,
-            LocalDate end) {
+            LocalDate end,
+            Pageable pageable) {
 
         log.info("Retrieving tasks with status={}, keyword={}, userId={}, dueDate={}, period={}, start={}, end={}", status, keyword, userId, dueDate, period, start, end);
 
@@ -113,9 +117,23 @@ public class TaskService {
             tasks = tasks.filter(task -> task.getDueDate() != null && !task.getDueDate().toLocalDate().isBefore(start) && !task.getDueDate().toLocalDate().isAfter(end));
         }
 
-        return tasks.sorted(Comparator.comparing(Task::getDueDate).reversed())
+        List<TaskResponse>filteredTasks= tasks.sorted(Comparator.comparing(Task::getDueDate).reversed())
                 .map(taskMapper::toResponse)
                 .toList();
+
+        int startIndex = (int)pageable.getOffset(); //getOffset = page*size
+        int endIndex=Math.min(startIndex+pageable.getPageSize(),filteredTasks.size());  //calculez unde se termina pagina
+
+        List<TaskResponse> pageContent;  //taskurile paginii curente
+
+        //verificam daca pagina exista
+        if(startIndex>=filteredTasks.size()){
+            pageContent=List.of();
+        }else{
+            pageContent = filteredTasks.subList(startIndex, endIndex);
+        }
+
+        return new PageImpl<>(pageContent,pageable,filteredTasks.size());
     }
 
     @Transactional

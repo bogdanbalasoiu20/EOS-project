@@ -14,9 +14,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -29,7 +30,7 @@ public class TaskController {
     //testat, merge
     @GetMapping
     @PreAuthorize("@checkPermissions.hasPermission('TASK','READ')")
-    public ResponseEntity<List<TaskResponse>> getTasks(
+    public ResponseEntity<Page<TaskResponse>> getTasks(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long userId,
@@ -37,9 +38,10 @@ public class TaskController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate,
             @RequestParam(required = false) TaskPeriod period,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            Pageable pageable) {
 
-        return ResponseEntity.ok(taskService.getTasks(status, keyword, userId, unassigned, dueDate, period, start, end));
+        return ResponseEntity.ok(taskService.getTasks(status, keyword, userId, unassigned, dueDate, period, start, end, pageable));
     }
 
     //testat, merge
